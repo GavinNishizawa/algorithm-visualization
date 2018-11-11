@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Algorithm Visualization</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <main>
+        <div id="convexHull">
+            <h1>Convex Hull via Graham's Scan</h1>
+            <p>Visualization of the graham's scan algorithm for computing the convex hull of a set of points.</p>
+            <button id="playConvexHull">Play</button>
+            <label for="playInterval">Step Interval (0 - 5000ms):
+                <input type="number" id="playInterval" min=0 max=5000 step=200 value="400"/>
+            </label>
+            <br/>
+            <canvas id="algo-visual" height="400px" width="400px"></canvas>
+        </div>
+    </main>
+    <!-- Load the Paper.js library -->
+    <script type="text/javascript" src="js/paper-full.min.js"></script>
+    <!-- Load graham scan js code -->
+    <script type="text/javascript" src="js/graham_scan.js"></script>
+    <!-- Drawing functions -->
+    <script type="text/javascript" src="js/draw.js"></script>
+    <!-- Main -->
+    <script type="text/javascript" src="js/main.js"></script>
+</body>
+</html>
