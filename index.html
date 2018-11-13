@@ -5,19 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>Algorithm Visualization</title>
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <main>
+    <main class="center-content">
+        <div id="project-description">
+            <h1>Geometric Algorithm Visualizations</h1>
+            <p>
+                The project will be an interactive web based educational tool to visualize a small set of geometric algorithms for computing the convex hull, line segment intersections, and polygon triangulation.
+                Information describing each problem and algorithm will be provided before the interactive section.
+                Additionally, the user interface will allow for the construction of input data as line segments, points, or polygons.
+                The tool will be able to simultaneously highlight the geometric data currently being operated on and the high level algorithmic task being worked on.
+                There will be the ability to step through each of the algorithms step by step or to automatically step through at various speeds.
+                This should provide a visual link between the idea of the algorithm, and the visualized geometry of the problem.
+            </p>
+            <div>
+                <h4>To Do:</h4>
+                <ul>
+                    <li>Add user ability to create/move/delete points, line segments, polygons</li>
+                    <li>Add user ability to manually step through algorithm</li>
+                    <li>Add problem and algorithm descriptions</li>
+                    <li>Add high-level algorithm steps with highlighting of current step</li>
+                    <li>Add Line segment intersection</li>
+                    <li>Add Polygon triangulation</li>
+                </ul>
+            </div>
+        </div>
         <div id="convexHull">
-            <h1>Convex Hull via Graham's Scan</h1>
+            <h2>Convex Hull via Graham's Scan</h2>
             <p>Visualization of the graham's scan algorithm for computing the convex hull of a set of points.</p>
             <button id="playConvexHull">Play</button>
             <label for="playInterval">Step Interval (0 - 5000ms):
                 <input type="number" id="playInterval" min=0 max=5000 step=200 value="400"/>
             </label>
             <br/>
-            <canvas id="algo-visual" height="400px" width="400px"></canvas>
+            <canvas id="algo-visual" height="900px" width="900px"></canvas>
+        </div>
+        <div>
+            <h2>References</h2>
+            <ol>
+                <li>
+                    Paper.js : <a href="http://paperjs.org" target="_blank">paperjs.org</a>
+                </li>
+                <li>
+                    Mount, David. “CMSC 754 Computational Geometry. Lecture Notes” UMD Department of Computer Science,
+                    2012, http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
+                </li>
+            </ol>
         </div>
     </main>
     <!-- Load the Paper.js library -->

@@ -1,8 +1,20 @@
 html {
-    font-size: 11pt;
+    font-size: 12pt !important;
 }
 * {
-    font-family: 'Helvetica Neue';
+    font-family: 'Helvetica Neue' !important;
+}
+body {
+    background-color: #f4faff;
+    color: #18202edd;
+    line-height: 1.45;
+    font-weight: 300;
+}
+.center-content {
+    width: 900px;
+    margin: 0 auto;
+    position: relative;
+    padding: 1rem;
 }
 #playConvexHull {
     padding: 5pt;
@@ -10,4 +22,11 @@ html {
 }
 canvas {
     border: 1px solid black;
+    width: 100%;
+}
+@media (max-width: 900px) {
+    .center-content {
+        width: 100%;
+        margin: 0 auto;
+    }
 }
