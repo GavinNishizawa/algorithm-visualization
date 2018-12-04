@@ -18,6 +18,7 @@ window.onload = () => {
     let add10PointsConvexHullButton = document.getElementById("add10PointsConvexHull");
     let addExamplePointsConvexHullButton = document.getElementById("addExamplePointsConvexHull");
     let timeIntervalInput = document.getElementById("playInterval");
+    let highLevelStateDesc = document.getElementById("highLevelStateDesc");
 
     // Define a function to intialize state
     let getInitialState = () => { return {
@@ -28,6 +29,7 @@ window.onload = () => {
         refreshTime: 10,
         path: null,
         justFinished: false,
+        highLevelStateDesc: highLevelStateDesc,
     }};
     // Define a reference to access state
     let stateRef = {state: getInitialState()};
@@ -84,6 +86,8 @@ window.onload = () => {
         playConvexHullButton.onclick = playConvexHull;
         stepConvexHullButton.disabled = stateRef.state.playing;
         add10PointsConvexHullButton.disabled = stateRef.state.started;
+        // Reset high-level state description
+        stateRef.state.highLevelStateDesc.textContent = "Not running";
     };
     resetConvexHullButton.onclick = reset;
 

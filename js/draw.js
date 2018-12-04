@@ -55,10 +55,13 @@ function getDrawPath(pathColor='red', pathWidth=1) {
             stateRef.state.path.strokeWidth = pathWidth;
 
             // draw the path between points
-            step.value.forEach(pt => {
+            step.value.inProgress.forEach(pt => {
                 stateRef.state.path.lineTo(pt);
                 stateRef.state.path.moveTo(pt);
             });
+
+            // Update the state description
+            stateRef.state.highLevelStateDesc.textContent = step.value.highLevelState;
 
             setTimeout(() => {
                 // take the next step

@@ -11,8 +11,18 @@ var convexHullExamplePoints = [
 [13, 3],
 ];
 
+let algorithmStates = {
+    sorting: "Sort the points data structure by x-coordinates then y-coordinates",
+    lowerHull: "Compute the lower hull of the convex hull",
+    upperHull: "Compute the upper hull of the convex hull"
+};
+
 // compute the convex hull via the upper and lower hulls
 function* graham_scan(points) {
+    let currentState = {
+        highLevelState: algorithmStates.sorting,
+        inProgress: [],
+    };
 
     function sub(p,q){
         return [q.x-p.x,q.y-p.y]
@@ -36,10 +46,13 @@ function* graham_scan(points) {
             return 1;
         }
     });
+    yield currentState;
 
     // compute the lower hull
     let lower = [points[0], points[1]]
-    yield lower;
+    currentState.highLevelState = algorithmStates.lowerHull;
+    currentState.inProgress = lower;
+    yield currentState;
 
     for (var i = 2; i < points.length; i++) {
         var p = points[i]
@@ -47,14 +60,17 @@ function* graham_scan(points) {
             cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
             ) {
                 lower.pop()
-                yield lower;
+                currentState.inProgress = lower;
+                yield currentState;
             }
         lower.push(p)
-        yield lower;
+        currentState.inProgress = lower;
+        yield currentState;
     }
 
     // compute the upper hull
     let upper = [points[points.length-1], points[points.length-2]]
+    currentState.highLevelState = algorithmStates.upperHull;
 
     for (var i = points.length - 2; i >= 0; i--) {
         var p = points[i]
@@ -62,10 +78,12 @@ function* graham_scan(points) {
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
             ) {
                 upper.pop()
-                yield lower.concat(upper);
+            currentState.inProgress = lower.concat(upper);
+            yield currentState;
         }
         upper.push(p)
-        yield lower.concat(upper);
+        currentState.inProgress = lower.concat(upper);
+        yield currentState;
     }
 
     // upper and lower should share endpoints
