@@ -9,33 +9,49 @@ var convexHullExamplePoints = [
 [15, 1],
 [14, 3],
 [13, 3],
-]
+];
 
 // compute the convex hull via the upper and lower hulls
 function* graham_scan(points) {
 
     function sub(p,q){
-        return [q[0]-p[0],q[1]-p[1]]
+        return [q.x-p.x,q.y-p.y]
     }
 
     function cross_product(p,q,r){
         var pq = sub(p,q)
         var qr = sub(q,r)
-        return pq[0]*qr[1] - pq[1]*qr[0]
+        return pq[0]*qr[1] - pq[1]*qr[0];
     }
 
     // sort points by x-value (then y)
     points.sort(function(pt1, pt2) {
         // TODO: find better way to sort by x then y
-        if ((pt1[0] < pt2[0]) ||
-            (pt1[0] == pt2[0] && pt1[1] < pt2[1])) {
+        if ((pt1.x < pt2.x) ||
+            (pt1.x == pt2.x && pt1.y < pt2.y)) {
             return -1;
-        } else if (pt1[0] == pt2[0] && pt1[1] == pt2[1]) {
+        } else if (pt1.x == pt2.x && pt1.y == pt2.y) {
             return 0;
         } else {
             return 1;
         }
-    })
+    });
+
+    // compute the lower hull
+    let lower = [points[0], points[1]]
+    yield lower;
+
+    for (var i = 2; i < points.length; i++) {
+        var p = points[i]
+        while (lower.length >= 2 &&
+            cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
+            ) {
+                lower.pop()
+                yield lower;
+            }
+        lower.push(p)
+        yield lower;
+    }
 
     // compute the upper hull
     let upper = [points[points.length-1], points[points.length-2]]
@@ -46,30 +62,15 @@ function* graham_scan(points) {
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
             ) {
                 upper.pop()
-                yield upper;
+                yield lower.concat(upper);
         }
         upper.push(p)
-        yield upper;
-    }
-
-    // compute the lower hull
-    let lower = [points[0], points[1]]
-
-    for (var i = 2; i < points.length; i++) {
-        var p = points[i]
-        while (lower.length >= 2 &&
-            cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
-            ) {
-                lower.pop()
-                yield upper.concat(lower);
-            }
-        lower.push(p)
-        yield upper.concat(lower);
+        yield lower.concat(upper);
     }
 
     // upper and lower should share endpoints
-    lower.pop()
+    upper.pop()
 
     // merge and return the hull results
-	return upper.concat(lower);
+	return lower.concat(upper);
 }

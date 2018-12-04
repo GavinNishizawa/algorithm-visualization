@@ -1,28 +1,29 @@
-function scalePoint(pt){
+function scaleExamplePoint(pt){
     var scaleFactor = 20, xOffset = 0, yOffset=10*scaleFactor;
-    return [scaleFactor*pt[0]+xOffset, -scaleFactor*pt[1]+yOffset];
+    return new Point(scaleFactor*pt[0]+xOffset, -scaleFactor*pt[1]+yOffset);
 }
 
-function drawPoints(points, pointColor='blue', pointSize=1) {
+function drawPoint(point, pointColor='blue', pointSize=1) {
+    var ptCircle = new Path.Circle(point, pointSize);
+    ptCircle.strokeColor = pointColor;
+    ptCircle.fillColor = pointColor;
+    return ptCircle;
+}
+function drawPoints(points, pointColor, pointSize) {
     points.forEach(pt => {
-        var myCircle = new Path.Circle(new Point(...scalePoint(pt)), pointSize);
-        myCircle.strokeColor = pointColor;
-        myCircle.fillColor = pointColor;
+        drawPoint(pt, pointColor, pointSize);
     })
 }
 
 function getDrawPath(pathColor='red', pathWidth=1) {
-    var path;
     function drawCompute(stepFn, stateRef, then, initial=false) {
         // clear old path if starting over
-        if (initial && path) path.remove();
+        if (initial && stateRef.state.path) stateRef.state.path.remove();
 
         function doStep() {
             // RESET
             if (!stateRef.state.started) {
-                // state was reset if started is false
-                // clear path and end execution
-                if (path) path.remove();
+                // state was reset if started is false => end execution
                 return
             }
             // PAUSE
@@ -42,21 +43,21 @@ function getDrawPath(pathColor='red', pathWidth=1) {
 
             // Finish by calling then with the final result
             if (step.done) {
+                stateRef.state.justFinished = true;
                 then(step.value);
                 return;
             }
 
             // Create new path object
-            if (path) path.remove();
-            path = new Path();
-            path.strokeColor = pathColor;
-            path.strokeWidth = pathWidth;
+            if (stateRef.state.path) stateRef.state.path.remove();
+            stateRef.state.path = new Path();
+            stateRef.state.path.strokeColor = pathColor;
+            stateRef.state.path.strokeWidth = pathWidth;
 
             // draw the path between points
             step.value.forEach(pt => {
-                var point = new Point(...scalePoint(pt));
-                path.lineTo(point);
-                path.moveTo(point);
+                stateRef.state.path.lineTo(pt);
+                stateRef.state.path.moveTo(pt);
             });
 
             setTimeout(() => {

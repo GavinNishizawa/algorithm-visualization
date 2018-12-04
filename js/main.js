@@ -3,15 +3,22 @@ paper.install(window);
 window.onload = () => {
     paper.setup('algo-visual');
 
-    // Draw the convex hull example points
-    drawPoints(convexHullExamplePoints, "blue", 2);
+    let drawSettings = {
+        pointColor: 'blue',
+        pointSize: 2,
+        pathColor: 'red',
+        pathSize: 2,
+    };
+    let points = convexHullExamplePoints.map(scaleExamplePoint);
 
-    let drawPath = getDrawPath("red", 2);
+    // Draw the convex hull example points
+    drawPoints(points, drawSettings.pointColor, drawSettings.pointSize);
 
     // Define references to control elements
     let playConvexHullButton = document.getElementById("playConvexHull");
     let stepConvexHullButton = document.getElementById("stepConvexHull");
     let resetConvexHullButton = document.getElementById("resetConvexHull");
+    let add10PointsConvexHullButton = document.getElementById("add10PointsConvexHull");
     let timeIntervalInput = document.getElementById("playInterval");
 
     // Define a function to intialize state
@@ -21,16 +28,53 @@ window.onload = () => {
         doStep: false,
         steptime: parseInt(timeIntervalInput.value),
         refreshTime: 10,
+        path: null,
+        justFinished: false,
     }};
     // Define a reference to access state
     let stateRef = {state: getInitialState()};
 
+    let addPoint = (point) => {
+        // Add point if not already running
+        if (!stateRef.state.started) {
+            drawPoint(point, drawSettings.pointColor, drawSettings.pointSize);
+            points.push(point);
+        }
+    }
+
+    paper.view.onMouseDown = (e) => {
+        // Add a point via click
+        addPoint(e.point);
+    };
+
+    let getAddNRandomPoints = (n) => () => {
+        // Generate 10 random points biased towards the center
+        let size = paper.view.size;
+        let getVal = (maxVal) => {
+            var v = Math.round(Math.random()*Math.random()*maxVal/2);
+            v *= Math.round(Math.random()) ? 1 : -1
+            return Math.round(v + maxVal/2);
+        };
+        for (var i = 0; i < n; i++) {
+            addPoint(new Point(getVal(size.width), getVal(size.height)));
+        }
+    };
+    let add10 = getAddNRandomPoints(10);
+    add10PointsConvexHullButton.onclick = add10;
+
     let reset = () => {
+        // Clear old path if it exists
+        if (!stateRef.state.justFinished && stateRef.state.path) {
+            stateRef.state.path.remove();
+        }
         // Reset state to initial state
-        stateRef.state = getInitialState();
+        let init = getInitialState();
+        stateRef.state = stateRef.state.justFinished ? {...init, path:stateRef.state.path} : init;
         // Reset play/pause button to initial state
         playConvexHullButton.textContent = "Play";
         playConvexHullButton.onclick = playConvexHull;
+        stepConvexHullButton.disabled = stateRef.state.playing;
+        add10PointsConvexHullButton.disabled = stateRef.state.started;
     };
     resetConvexHullButton.onclick = reset;
 
@@ -43,7 +87,6 @@ window.onload = () => {
             // First start and pause before manual stepping
             playConvexHull();
             togglePlay();
-            doManualStep();
         }
     };
     stepConvexHullButton.onclick = doManualStep;
@@ -55,6 +98,7 @@ window.onload = () => {
         playConvexHullButton.textContent = stateRef.state.playing ? "Pause" : "Play";
         // Disable step button while playing
         stepConvexHullButton.disabled = stateRef.state.playing;
+        add10PointsConvexHullButton.disabled = stateRef.state.started;
     }
 
     let updateTimeInterval = () => {
@@ -63,12 +107,14 @@ window.onload = () => {
     };
     timeIntervalInput.onchange = updateTimeInterval;
 
+    let drawPath = getDrawPath(drawSettings.pathColor, drawSettings.pathSize);
+
     let playConvexHull = () => {
         // Begin execution of algorithm
         togglePlay();
 
         // Get the convex hull step generator
-        var hullStep = graham_scan(convexHullExamplePoints);
+        var hullStep = graham_scan(points);
         // Run the algorithm visualization
         drawPath(hullStep, stateRef, result => {
             console.log(result);
