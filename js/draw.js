@@ -1,5 +1,5 @@
 function scaleExamplePoint(pt){
-    var scaleFactor = 20, xOffset = 0, yOffset=10*scaleFactor;
+    var scaleFactor = 16, xOffset = 0, yOffset=8*scaleFactor;
     return new Point(scaleFactor*pt[0]+xOffset, -scaleFactor*pt[1]+yOffset);
 }
 

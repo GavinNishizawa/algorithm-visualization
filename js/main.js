@@ -9,16 +9,14 @@ window.onload = () => {
         pathColor: 'red',
         pathSize: 2,
     };
-    let points = convexHullExamplePoints.map(scaleExamplePoint);
-
-    // Draw the convex hull example points
-    drawPoints(points, drawSettings.pointColor, drawSettings.pointSize);
+    let points = [];
 
     // Define references to control elements
     let playConvexHullButton = document.getElementById("playConvexHull");
     let stepConvexHullButton = document.getElementById("stepConvexHull");
     let resetConvexHullButton = document.getElementById("resetConvexHull");
     let add10PointsConvexHullButton = document.getElementById("add10PointsConvexHull");
+    let addExamplePointsConvexHullButton = document.getElementById("addExamplePointsConvexHull");
     let timeIntervalInput = document.getElementById("playInterval");
 
     // Define a function to intialize state
@@ -61,6 +59,17 @@ window.onload = () => {
     };
     let add10 = getAddNRandomPoints(10);
     add10PointsConvexHullButton.onclick = add10;
+    var addedExamplePoints = false;
+    let addExamplePoints = () => {
+        if (!addedExamplePoints) {
+            convexHullExamplePoints.map(scaleExamplePoint).forEach(pt => {
+                addPoint(pt);
+            });
+            addedExamplePoints = true;
+            addExamplePointsConvexHullButton.disabled = true;
+        }
+    };
+    addExamplePointsConvexHullButton.onclick = addExamplePoints;
 
     let reset = () => {
         // Clear old path if it exists
