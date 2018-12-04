@@ -13,10 +13,30 @@ function drawPoints(points, pointColor='blue', pointSize=1) {
 
 function getDrawPath(pathColor='red', pathWidth=1) {
     var path;
-    function drawCompute(stepFn, waittime, then, initial=false) {
+    function drawCompute(stepFn, stateRef, then, initial=false) {
+        // clear old path if starting over
         if (initial && path) path.remove();
 
-        setTimeout(() => {
+        function doStep() {
+            // RESET
+            if (!stateRef.state.started) {
+                // state was reset if started is false
+                // clear path and end execution
+                if (path) path.remove();
+                return
+            }
+            // PAUSE
+            if (!stateRef.state.playing) {
+                if (stateRef.state.doStep) {
+                    // DO STEP
+                    stateRef.state.doStep = false;
+                } else {
+                    // Wait for refreshTime ms until checking play status again
+                    setTimeout(doStep, stateRef.state.refreshTime);
+                    return
+                }
+            }
+
             // Take a step
             var step = stepFn.next();
 
@@ -39,10 +59,13 @@ function getDrawPath(pathColor='red', pathWidth=1) {
                 path.moveTo(point);
             });
 
-            // take the next step
-            drawCompute(stepFn, waittime, then);
-        }, waittime);
+            setTimeout(() => {
+                // take the next step
+                drawCompute(stepFn, stateRef, then);
+            }, stateRef.state.steptime);
+        }
+        doStep();
     }
     // Start
-    return (stepFn, interval, then=r=>{}) => drawCompute(stepFn, interval, then, true);
+    return (stepFn, stateRef, then=r=>{}) => drawCompute(stepFn, stateRef, then, true);
 }

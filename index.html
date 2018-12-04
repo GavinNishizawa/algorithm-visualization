@@ -24,7 +24,7 @@
                 <h4>To Do:</h4>
                 <ul>
                     <li>Add user ability to create/move/delete points, line segments, polygons</li>
-                    <li>Add user ability to manually step through algorithm</li>
+                    <li style="text-decoration: line-through">Add user ability to manually step through algorithm</li>
                     <li>Add problem and algorithm descriptions</li>
                     <li>Add high-level algorithm steps with highlighting of current step</li>
                     <li>Add Line segment intersection</li>
@@ -35,10 +35,12 @@
         <div id="convexHull">
             <h2>Convex Hull via Graham's Scan</h2>
             <p>Visualization of the graham's scan algorithm for computing the convex hull of a set of points.</p>
-            <button id="playConvexHull">Play</button>
+            <button class="control-btn" id="playConvexHull">Play</button>
+            <button class="control-btn" id="stepConvexHull">Step</button>
             <label for="playInterval">Step Interval (0 - 5000ms):
                 <input type="number" id="playInterval" min=0 max=5000 step=200 value="400"/>
             </label>
+            <button class="control-btn" id="resetConvexHull">Reset</button>
             <br/>
             <canvas id="algo-visual" height="900px" width="900px"></canvas>
         </div>

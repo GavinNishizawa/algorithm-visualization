@@ -16,7 +16,7 @@ body {
     position: relative;
     padding: 1rem;
 }
-#playConvexHull {
+.control-btn {
     padding: 5pt;
     font-size: 1.2em;
 }
