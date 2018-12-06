@@ -4,9 +4,9 @@ window.onload = () => {
     paper.setup('algo-visual');
 
     let drawSettings = {
-        pointColor: 'blue',
+        pointColor: new Color(0,0,1),
         pointSize: 2,
-        pathColor: 'red',
+        pathColor: new Color(1,0,0),
         pathSize: 2,
     };
     let points = [];
