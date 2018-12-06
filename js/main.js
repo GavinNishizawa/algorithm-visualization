@@ -19,6 +19,7 @@ window.onload = () => {
     let addExamplePointsConvexHullButton = document.getElementById("addExamplePointsConvexHull");
     let timeIntervalInput = document.getElementById("playInterval");
     let highLevelStateDesc = document.getElementById("highLevelStateDesc");
+    let algoStateList = document.getElementById("algoStateList");
 
     // Define a function to intialize state
     let getInitialState = () => { return {
@@ -30,6 +31,7 @@ window.onload = () => {
         path: null,
         justFinished: false,
         highLevelStateDesc: highLevelStateDesc,
+        algoStateList: algoStateList,
     }};
     // Define a reference to access state
     let stateRef = {state: getInitialState()};
@@ -88,6 +90,14 @@ window.onload = () => {
         add10PointsConvexHullButton.disabled = stateRef.state.started;
         // Reset high-level state description
         stateRef.state.highLevelStateDesc.textContent = "Not running";
+        for(var i = 0; i < stateRef.state.algoStateList.children.length; i++) {
+            stateRef.state.algoStateList.children[i].classList.remove("font-weight-bold");
+            if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
+                for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
+                    stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
+                }
+            }
+        }
     };
     resetConvexHullButton.onclick = reset;
 

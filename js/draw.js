@@ -62,6 +62,31 @@ function getDrawPath(pathColor='red', pathWidth=1) {
 
             // Update the state description
             stateRef.state.highLevelStateDesc.textContent = step.value.highLevelState;
+            for(var i = 0; i < stateRef.state.algoStateList.children.length; i++) {
+                if (i == step.value.highLevelStateIndex) {
+                    if (!stateRef.state.algoStateList.children[i].classList.contains("font-weight-bold")) {
+                        stateRef.state.algoStateList.children[i].classList += "font-weight-bold";
+                    }
+                    if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
+                        for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
+                            if (j == step.value.lowLevelStateIndex) {
+                                if (!stateRef.state.algoStateList.children[i].children[0].children[j].classList.contains("font-weight-bold")) {
+                                    stateRef.state.algoStateList.children[i].children[0].children[j].classList += "font-weight-bold";
+                                }
+                            } else {
+                                stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
+                            }
+                        }
+                    }
+                } else {
+                    stateRef.state.algoStateList.children[i].classList.remove("font-weight-bold");
+                    if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
+                        for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
+                            stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
+                        }
+                    }
+                }
+            }
 
             setTimeout(() => {
                 // take the next step
