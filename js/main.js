@@ -29,6 +29,9 @@ window.onload = () => {
         steptime: parseInt(timeIntervalInput.value),
         refreshTime: 10,
         path: null,
+        targetPath: null,
+        xPath: null,
+        currentPoint: null,
         justFinished: false,
         highLevelStateDesc: highLevelStateDesc,
         algoStateList: algoStateList,
@@ -77,12 +80,21 @@ window.onload = () => {
 
     let reset = () => {
         // Clear old path if it exists
-        if (!stateRef.state.justFinished && stateRef.state.path) {
-            stateRef.state.path.remove();
+        if (!stateRef.state.justFinished) {
+            if (stateRef.state.path) stateRef.state.path.remove();
+            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
+            if (stateRef.state.xPath) stateRef.state.xPath.remove();
+            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
         }
         // Reset state to initial state
         let init = getInitialState();
-        stateRef.state = stateRef.state.justFinished ? {...init, path:stateRef.state.path} : init;
+        stateRef.state = stateRef.state.justFinished ? {
+            ...init,
+            path:stateRef.state.path,
+            targetPath:stateRef.state.targetPath,
+            xPath:stateRef.state.xPath,
+            currentPoint:stateRef.state.currentPoint
+        } : init;
         // Reset play/pause button to initial state
         playConvexHullButton.textContent = "Play";
         playConvexHullButton.onclick = playConvexHull;

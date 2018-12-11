@@ -12,13 +12,11 @@
     <main class="center-content">
         <div id="project-description">
             <h1>Geometric Algorithm Visualizations</h1>
+            <h6>by Gavin Nishizawa</h6>
             <h4>Project Goal</h4>
             <p>
-                The project will be an interactive web based educational tool to visualize a small set of geometric algorithms for computing the convex hull, line segment intersections, and polygon triangulation.
-                Information describing each problem and algorithm will be provided before the interactive section.
-                Additionally, the user interface will allow for the construction of input data as line segments, points, or polygons.
-                The tool will be able to simultaneously highlight the geometric data currently being operated on and the high level algorithmic task being worked on.
-                There will be the ability to step through each of the algorithms step by step or to automatically step through at various speeds.
+                The project is to build an interactive educational tool for geometric algorithms, which is able to simultaneously
+                highlight the geometric data currently being operated on and the high level algorithmic task being worked on.
                 This should provide a visual link between the idea of the algorithm, and the visualized geometry of the problem.
             </p>
         </div>
@@ -74,16 +72,18 @@
                     <ol id="algoStateList">
                         <li>Sort the points data structure by x value then y value</li>
                         <li>Compute the upper hull of the convex hull
-                            <ol class="font-weight-light ">
+                            <ul class="font-weight-light ">
+                                <li>Check interior angle</li>
                                 <li>Pop old point</li>
                                 <li>Push new point</li>
-                            </ol>
+                            </ul>
                         </li>
                         <li>Compute the lower hull of the convex hull
-                            <ol class="font-weight-light ">
+                            <ul class="font-weight-light ">
+                                <li>Check interior angle</li>
                                 <li>Pop old point</li>
                                 <li>Push new point</li>
-                            </ol>
+                            </ul>
                         </li>
                     </ol>
                 </div>

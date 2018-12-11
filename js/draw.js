@@ -18,7 +18,12 @@ function drawPoints(points, pointColor, pointSize) {
 function getDrawPath(pathColor='red', pathWidth=1) {
     function drawCompute(stepFn, stateRef, then, initial=false) {
         // clear old path if starting over
-        if (initial && stateRef.state.path) stateRef.state.path.remove();
+        if (initial) {
+            if (stateRef.state.path) stateRef.state.path.remove();
+            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
+            if (stateRef.state.xPath) stateRef.state.xPath.remove();
+            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
+        }
 
         function doStep() {
             // RESET
@@ -48,17 +53,44 @@ function getDrawPath(pathColor='red', pathWidth=1) {
                 return;
             }
 
+            if (stateRef.state.xPath) stateRef.state.xPath.remove();
+            if (step.value.currentPoint != null) {
+                stateRef.state.xPath = new Path();
+                stateRef.state.xPath.strokeColor = new Color(0.1,0.1,0.1);
+                stateRef.state.xPath.strokeWidth = pathWidth;
+                stateRef.state.xPath.lineTo(step.value.currentPoint.x, 0);
+                stateRef.state.xPath.moveTo(step.value.currentPoint.x, 0);
+                stateRef.state.xPath.lineTo(step.value.currentPoint.x, 10000);
+                stateRef.state.xPath.moveTo(step.value.currentPoint.x, 10000);
+            }
+
+            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
+            stateRef.state.currentPoint = drawPoint(step.value.currentPoint, new Color(0,0,1), 4);
+
             // Create new path object
             if (stateRef.state.path) stateRef.state.path.remove();
             stateRef.state.path = new Path();
             stateRef.state.path.strokeColor = pathColor;
             stateRef.state.path.strokeWidth = pathWidth;
 
+            var lastPt = null;
             // draw the path between points
             step.value.inProgress.forEach(pt => {
                 stateRef.state.path.lineTo(pt);
                 stateRef.state.path.moveTo(pt);
+                lastPt = pt;
             });
+
+            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
+            if (step.value.targetPoint != null) {
+                stateRef.state.targetPath = new Path();
+                stateRef.state.targetPath.strokeColor = new Color(0,0.3,0.7);
+                stateRef.state.targetPath.strokeWidth = pathWidth;
+                stateRef.state.targetPath.lineTo(lastPt);
+                stateRef.state.targetPath.moveTo(lastPt);
+                stateRef.state.targetPath.lineTo(step.value.targetPoint);
+                stateRef.state.targetPath.moveTo(step.value.targetPoint);
+            }
 
             // Update the state description
             stateRef.state.highLevelStateDesc.textContent = step.value.highLevelState;

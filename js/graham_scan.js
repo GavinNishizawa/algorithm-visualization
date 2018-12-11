@@ -24,6 +24,7 @@ function* graham_scan(points) {
         highLevelStateIndex: 0,
         lowLevelStateIndex: 0,
         inProgress: [],
+        targetPoint: null,
     };
 
     function sub(p,q){
@@ -48,28 +49,43 @@ function* graham_scan(points) {
             return 1;
         }
     });
-    yield currentState;
+    for (var i = 0; i < points.length; i++){
+        // show sorted points
+        currentState.currentPoint = points[i];
+        yield currentState;
+    }
 
     // compute the lower hull ("upper" in this visualization since higher y-values are "lower")
     let upper = [points[0], points[1]]
     currentState.highLevelState = algorithmStates.upperHull;
     currentState.highLevelStateIndex = 1;
     currentState.inProgress = upper;
-    yield currentState;
+    currentState.targetPoint = upper.length > 2 ? upper[2] : null;
+    currentState.currentPoint = upper[upper.length - 1];
+    // yield currentState;
 
     for (var i = 2; i < points.length; i++) {
-        var p = points[i]
-        currentState.lowLevelStateIndex = 0;
+        var p = points[i];
+        currentState.currentPoint = p;
         while (upper.length >= 2 &&
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
-            ) {
-                upper.pop()
-                currentState.inProgress = upper;
-                yield currentState;
-            }
-        currentState.lowLevelStateIndex = 1;
+        ) {
+            currentState.targetPoint = p;
+            currentState.lowLevelStateIndex = 0;
+            yield currentState;
+            currentState.targetPoint = null;
+            currentState.lowLevelStateIndex = 1;
+            upper.pop()
+            currentState.inProgress = upper;
+            yield currentState;
+        }
+        currentState.targetPoint = p;
+        currentState.lowLevelStateIndex = 0;
+        yield currentState;
         upper.push(p)
         currentState.inProgress = upper;
+        currentState.targetPoint = null;
+        currentState.lowLevelStateIndex = 2;
         yield currentState;
     }
 
@@ -79,18 +95,27 @@ function* graham_scan(points) {
     currentState.highLevelStateIndex = 2;
 
     for (var i = points.length - 2; i >= 0; i--) {
-        var p = points[i]
-        currentState.lowLevelStateIndex = 0;
+        var p = points[i];
+        currentState.currentPoint = p;
         while (lower.length >= 2 &&
             cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
-            ) {
-                lower.pop()
+        ) {
+            currentState.targetPoint = p;
+            currentState.lowLevelStateIndex = 0;
+            yield currentState;
+            currentState.targetPoint = null;
+            currentState.lowLevelStateIndex = 1;
+            lower.pop()
             currentState.inProgress = upper.concat(lower);
             yield currentState;
         }
-        currentState.lowLevelStateIndex = 1;
+        currentState.targetPoint = p;
+        currentState.lowLevelStateIndex = 0;
+        yield currentState;
         lower.push(p)
         currentState.inProgress = upper.concat(lower);
+        currentState.targetPoint = null;
+        currentState.lowLevelStateIndex = 2;
         yield currentState;
     }
 
