@@ -18,14 +18,20 @@ let algorithmStates = {
 };
 
 // compute the convex hull via the upper and lower hulls
-function* graham_scan(points) {
-    let currentState = {
+function graham_scan(points) {
+    let stateList = [];
+    let state = {};
+    state.current = {
         highLevelState: algorithmStates.sorting,
         highLevelStateIndex: 0,
         lowLevelStateIndex: 0,
         inProgress: [],
         targetPoint: null,
     };
+    let recordState = () => stateList.push(
+        {...state.current, inProgress: [...state.current.inProgress]}
+    );
+    recordState();
 
     function sub(p,q){
         return [q.x-p.x,q.y-p.y]
@@ -51,72 +57,71 @@ function* graham_scan(points) {
     });
     for (var i = 0; i < points.length; i++){
         // show sorted points
-        currentState.currentPoint = points[i];
-        yield currentState;
+        state.current.currentPoint = points[i];
+        recordState();
     }
 
     // compute the lower hull ("upper" in this visualization since higher y-values are "lower")
     let upper = [points[0], points[1]]
-    currentState.highLevelState = algorithmStates.upperHull;
-    currentState.highLevelStateIndex = 1;
-    currentState.inProgress = upper;
-    currentState.targetPoint = upper.length > 2 ? upper[2] : null;
-    currentState.currentPoint = upper[upper.length - 1];
-    // yield currentState;
+    state.current.highLevelState = algorithmStates.upperHull;
+    state.current.highLevelStateIndex = 1;
+    state.current.inProgress = upper;
+    state.current.targetPoint = upper.length > 2 ? upper[2] : null;
+    state.current.currentPoint = upper[upper.length - 1];
 
     for (var i = 2; i < points.length; i++) {
         var p = points[i];
-        currentState.currentPoint = p;
+        state.current.currentPoint = p;
         while (upper.length >= 2 &&
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
         ) {
-            currentState.targetPoint = p;
-            currentState.lowLevelStateIndex = 0;
-            yield currentState;
-            currentState.targetPoint = null;
-            currentState.lowLevelStateIndex = 1;
+            state.current.targetPoint = p;
+            state.current.lowLevelStateIndex = 0;
+            recordState();
+            state.current.targetPoint = null;
+            state.current.lowLevelStateIndex = 1;
             upper.pop()
-            currentState.inProgress = upper;
-            yield currentState;
+            state.current.inProgress = upper;
+            recordState();
         }
-        currentState.targetPoint = p;
-        currentState.lowLevelStateIndex = 0;
-        yield currentState;
+        state.current.targetPoint = p;
+        state.current.lowLevelStateIndex = 0;
+        recordState();
         upper.push(p)
-        currentState.inProgress = upper;
-        currentState.targetPoint = null;
-        currentState.lowLevelStateIndex = 2;
-        yield currentState;
+        state.current.inProgress = upper;
+        state.current.targetPoint = null;
+        state.current.lowLevelStateIndex = 2;
+        recordState();
     }
 
     // compute the upper hull ("lower" in this visualization since higher y-values are "lower")
     let lower = [points[points.length-1], points[points.length-2]]
-    currentState.highLevelState = algorithmStates.lowerHull;
-    currentState.highLevelStateIndex = 2;
+    state.current.highLevelState = algorithmStates.lowerHull;
+    state.current.highLevelStateIndex = 2;
 
     for (var i = points.length - 2; i >= 0; i--) {
         var p = points[i];
-        currentState.currentPoint = p;
+        state.current.currentPoint = p;
         while (lower.length >= 2 &&
             cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
         ) {
-            currentState.targetPoint = p;
-            currentState.lowLevelStateIndex = 0;
-            yield currentState;
-            currentState.targetPoint = null;
-            currentState.lowLevelStateIndex = 1;
+            state.current.targetPoint = p;
+            state.current.lowLevelStateIndex = 0;
+            recordState();
+            state.current.targetPoint = null;
+            state.current.lowLevelStateIndex = 1;
             lower.pop()
-            currentState.inProgress = upper.concat(lower);
-            yield currentState;
+            state.current.inProgress = upper.concat(lower);
+            recordState();
         }
-        currentState.targetPoint = p;
-        currentState.lowLevelStateIndex = 0;
-        yield currentState;
+        state.current.targetPoint = p;
+        state.current.lowLevelStateIndex = 0;
+        recordState();
         lower.push(p)
-        currentState.inProgress = upper.concat(lower);
-        currentState.targetPoint = null;
-        currentState.lowLevelStateIndex = 2;
-        yield currentState;
+        state.current.inProgress = upper.concat(lower);
+        state.current.targetPoint = null;
+        state.current.lowLevelStateIndex = 2;
+        recordState();
     }
 
     // upper and lower should share endpoints
@@ -124,5 +129,6 @@ function* graham_scan(points) {
     lower.pop()
 
     // merge and return the hull results
-	return upper.concat(lower);
+    // return upper.concat(lower);
+    return stateList;
 }

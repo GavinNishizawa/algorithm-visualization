@@ -2,6 +2,7 @@ paper.install(window);
 
 window.onload = () => {
     paper.setup('algo-visual');
+    let activeLayer = paper.project.activeLayer;
 
     let drawSettings = {
         pointColor: new Color(0,0,1),
@@ -60,9 +61,9 @@ window.onload = () => {
             v *= Math.round(Math.random()) ? 1 : -1
             return Math.round(v + maxVal/2);
         };
-        for (var i = 0; i < n; i++) {
-            addPoint(new Point(getVal(size.width), getVal(size.height)));
-        }
+        repeat(() =>
+            addPoint(new Point(getVal(size.width), getVal(size.height)))
+        , n);
     };
     let add10 = getAddNRandomPoints(10);
     add10PointsConvexHullButton.onclick = add10;
@@ -81,10 +82,9 @@ window.onload = () => {
     let reset = () => {
         // Clear old path if it exists
         if (!stateRef.state.justFinished) {
-            if (stateRef.state.path) stateRef.state.path.remove();
-            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
-            if (stateRef.state.xPath) stateRef.state.xPath.remove();
-            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
+            // Clear existing points
+            points.splice(0);
+            activeLayer.clear();
         }
         // Reset state to initial state
         let init = getInitialState();
@@ -102,14 +102,12 @@ window.onload = () => {
         add10PointsConvexHullButton.disabled = stateRef.state.started;
         // Reset high-level state description
         stateRef.state.highLevelStateDesc.textContent = "Not running";
-        for(var i = 0; i < stateRef.state.algoStateList.children.length; i++) {
-            stateRef.state.algoStateList.children[i].classList.remove("font-weight-bold");
-            if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
-                for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
-                    stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
-                }
+        iter(stateRef.state.algoStateList.children, c => {
+            unbold(c);
+            if (c.childElementCount > 0) {
+                iter(c.children[0].children, unbold);
             }
-        }
+        });
     };
     resetConvexHullButton.onclick = reset;
 
@@ -142,19 +140,16 @@ window.onload = () => {
     };
     timeIntervalInput.onchange = updateTimeInterval;
 
-    let drawPath = getDrawPath(drawSettings.pathColor, drawSettings.pathSize);
+    let runVisualization = getRun(drawSettings.pathColor, drawSettings.pathSize);
 
     let playConvexHull = () => {
         // Begin execution of algorithm
         togglePlay();
 
-        // Get the convex hull step generator
-        var hullStep = graham_scan(points);
+        // Get the convex hull step list
+        let stepList = graham_scan(points);
         // Run the algorithm visualization
-        drawPath(hullStep, stateRef, result => {
-            console.log(result);
-            reset();
-        });
+        runVisualization(stepList, stateRef, reset);
         // While running, set play button to toggle between play and pause
         playConvexHullButton.onclick = togglePlay;
     };

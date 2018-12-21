@@ -9,22 +9,37 @@ function drawPoint(point, pointColor='blue', pointSize=1) {
     ptCircle.fillColor = pointColor;
     return ptCircle;
 }
+
 function drawPoints(points, pointColor, pointSize) {
     points.forEach(pt => {
         drawPoint(pt, pointColor, pointSize);
     })
 }
 
-function getDrawPath(pathColor='red', pathWidth=1) {
-    function drawCompute(stepFn, stateRef, then, initial=false) {
-        // clear old path if starting over
-        if (initial) {
-            if (stateRef.state.path) stateRef.state.path.remove();
-            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
-            if (stateRef.state.xPath) stateRef.state.xPath.remove();
-            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
-        }
+function createTargetPath(a, b, pathWidth=1) {
+    let targetPath = new Path();
+    targetPath.strokeColor = new Color(0,0.3,0.7);
+    targetPath.strokeWidth = pathWidth;
+    targetPath.lineTo(a);
+    targetPath.moveTo(a);
+    targetPath.lineTo(b);
+    targetPath.moveTo(b);
+    return targetPath;
+}
 
+function createXPath(x, pathWidth=1) {
+    let xPath = new Path();
+    xPath.strokeColor = new Color(0.1,0.1,0.1);
+    xPath.strokeWidth = pathWidth;
+    xPath.lineTo(x, 0);
+    xPath.moveTo(x, 0);
+    xPath.lineTo(x, 10000);
+    xPath.moveTo(x, 10000);
+    return xPath;
+}
+
+function getRun(pathColor='red', pathWidth=1) {
+    function drawCompute(stepList, stateRef, then, stepIndex=0) {
         function doStep() {
             // RESET
             if (!stateRef.state.started) {
@@ -44,28 +59,22 @@ function getDrawPath(pathColor='red', pathWidth=1) {
             }
 
             // Take a step
-            var step = stepFn.next();
+            let step = stepList[stepIndex];
 
             // Finish by calling then with the final result
-            if (step.done) {
+            if (stepIndex == stepList.length) {
                 stateRef.state.justFinished = true;
-                then(step.value);
+                then();
                 return;
             }
 
             if (stateRef.state.xPath) stateRef.state.xPath.remove();
-            if (step.value.currentPoint != null) {
-                stateRef.state.xPath = new Path();
-                stateRef.state.xPath.strokeColor = new Color(0.1,0.1,0.1);
-                stateRef.state.xPath.strokeWidth = pathWidth;
-                stateRef.state.xPath.lineTo(step.value.currentPoint.x, 0);
-                stateRef.state.xPath.moveTo(step.value.currentPoint.x, 0);
-                stateRef.state.xPath.lineTo(step.value.currentPoint.x, 10000);
-                stateRef.state.xPath.moveTo(step.value.currentPoint.x, 10000);
+            if (step.currentPoint != null) {
+                stateRef.state.xPath = createXPath(step.currentPoint.x, pathWidth);
             }
 
             if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
-            stateRef.state.currentPoint = drawPoint(step.value.currentPoint, new Color(0,0,1), 4);
+            stateRef.state.currentPoint = drawPoint(step.currentPoint, new Color(0,0,1), 4);
 
             // Create new path object
             if (stateRef.state.path) stateRef.state.path.remove();
@@ -75,58 +84,42 @@ function getDrawPath(pathColor='red', pathWidth=1) {
 
             var lastPt = null;
             // draw the path between points
-            step.value.inProgress.forEach(pt => {
+            step.inProgress.forEach(pt => {
                 stateRef.state.path.lineTo(pt);
                 stateRef.state.path.moveTo(pt);
                 lastPt = pt;
             });
 
             if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
-            if (step.value.targetPoint != null) {
-                stateRef.state.targetPath = new Path();
-                stateRef.state.targetPath.strokeColor = new Color(0,0.3,0.7);
-                stateRef.state.targetPath.strokeWidth = pathWidth;
-                stateRef.state.targetPath.lineTo(lastPt);
-                stateRef.state.targetPath.moveTo(lastPt);
-                stateRef.state.targetPath.lineTo(step.value.targetPoint);
-                stateRef.state.targetPath.moveTo(step.value.targetPoint);
+            if (step.targetPoint != null) {
+                stateRef.state.targetPath = createTargetPath(lastPt, step.targetPoint, pathWidth);
             }
 
             // Update the state description
-            stateRef.state.highLevelStateDesc.textContent = step.value.highLevelState;
-            for(var i = 0; i < stateRef.state.algoStateList.children.length; i++) {
-                if (i == step.value.highLevelStateIndex) {
-                    if (!stateRef.state.algoStateList.children[i].classList.contains("font-weight-bold")) {
-                        stateRef.state.algoStateList.children[i].classList += "font-weight-bold";
-                    }
-                    if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
-                        for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
-                            if (j == step.value.lowLevelStateIndex) {
-                                if (!stateRef.state.algoStateList.children[i].children[0].children[j].classList.contains("font-weight-bold")) {
-                                    stateRef.state.algoStateList.children[i].children[0].children[j].classList += "font-weight-bold";
-                                }
-                            } else {
-                                stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
-                            }
-                        }
+            stateRef.state.highLevelStateDesc.textContent = step.highLevelState;
+            iter(stateRef.state.algoStateList.children, (c,i) => {
+                if (i == step.highLevelStateIndex) {
+                    bold(c);
+                    if (c.childElementCount > 0) {
+                        iter(c.children[0].children, (cc,j) =>
+                            (j == step.lowLevelStateIndex) ? bold(cc) : unbold(cc)
+                        );
                     }
                 } else {
-                    stateRef.state.algoStateList.children[i].classList.remove("font-weight-bold");
-                    if (stateRef.state.algoStateList.children[i].childElementCount > 0) {
-                        for(var j = 0; j < stateRef.state.algoStateList.children[i].children[0].children.length; j++) {
-                            stateRef.state.algoStateList.children[i].children[0].children[j].classList.remove("font-weight-bold");
-                        }
+                    unbold(c);
+                    if (c.childElementCount > 0) {
+                        iter(c.children[0].children, unbold);
                     }
                 }
-            }
+            });
 
-            setTimeout(() => {
-                // take the next step
-                drawCompute(stepFn, stateRef, then);
-            }, stateRef.state.steptime);
+            setTimeout(() => // take the next step
+                drawCompute(stepList, stateRef, then, stepIndex+1),
+                stateRef.state.steptime
+            );
         }
         doStep();
     }
     // Start
-    return (stepFn, stateRef, then=r=>{}) => drawCompute(stepFn, stateRef, then, true);
+    return (stepList, stateRef, then=r=>{}) => drawCompute(stepList, stateRef, then);
 }
