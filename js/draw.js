@@ -48,85 +48,47 @@ function createXPath(x, pathWidth=1) {
     return xPath;
 }
 
-function getRun(pathColor='red', pathWidth=1) {
-    function drawCompute(stepList, stateRef, then, stepIndex=0) {
-        function doStep() {
-            // RESET
-            if (!stateRef.state.started) {
-                // state was reset if started is false => end execution
-                return
-            }
-            // PAUSE
-            if (!stateRef.state.playing) {
-                if (stateRef.state.doStep) {
-                    // DO STEP
-                    stateRef.state.doStep = false;
-                } else {
-                    // Wait for refreshTime ms until checking play status again
-                    setTimeout(doStep, stateRef.state.refreshTime);
-                    return
-                }
-            }
+function getDrawStep(stateRef, pathColor='red', pathWidth=1) {
+    function drawStep(value, index) {
 
-            // Take a step
-            let step = stepList[stepIndex];
-
-            // Finish by calling then with the final result
-            if (stepIndex == stepList.length) {
-                stateRef.state.justFinished = true;
-                then();
-                return;
-            }
-
-            if (stateRef.state.xPath) stateRef.state.xPath.remove();
-            if (step.currentPoint != null) {
-                stateRef.state.xPath = createXPath(step.currentPoint.x, pathWidth);
-            }
-
-            if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
-            stateRef.state.currentPoint = drawPoint(step.currentPoint, new Color(0,0,1), 4);
-
-            // Create new path object
-            if (stateRef.state.path) stateRef.state.path.remove();
-            stateRef.state.path = makePath(pathColor, pathWidth);
-
-            var lastPt = null;
-            // draw the path between points
-            step.inProgress.forEach(pt => {
-                movePathToPoint(stateRef.state.path, pt);
-                lastPt = pt;
-            });
-
-            if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
-            if (step.targetPoint != null) {
-                stateRef.state.targetPath = createTargetPath(lastPt, step.targetPoint, pathWidth);
-            }
-
-            // Update the state description
-            stateRef.state.highLevelStateDesc.textContent = algorithmStateText[step.highLevelState];
-            iter(stateRef.state.algoStateList.children, (c,i) => {
-                if (i == step.highLevelStateIndex) {
-                    bold(c);
-                    if (c.childElementCount > 0) {
-                        iter(c.children[0].children, (cc,j) =>
-                            (j == step.lowLevelStateIndex) ? bold(cc) : unbold(cc)
-                        );
-                    }
-                } else {
-                    unbold(c);
-                    if (c.childElementCount > 0) {
-                        iter(c.children[0].children, unbold);
-                    }
-                }
-            });
-
-            setTimeout(() => // take the next step
-                drawCompute(stepList, stateRef, then, stepIndex+1),
-                stateRef.state.steptime
-            );
+        if (stateRef.state.xPath) stateRef.state.xPath.remove();
+        if (value.currentPoint != null) {
+            stateRef.state.xPath = createXPath(value.currentPoint.x, pathWidth);
         }
-        doStep();
+
+        if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
+        stateRef.state.currentPoint = drawPoint(value.currentPoint, new Color(0,0,1), 4);
+
+        // Create new path object
+        if (stateRef.state.path) stateRef.state.path.remove();
+        stateRef.state.path = makePath(pathColor, pathWidth);
+
+        // draw the path between points
+        value.inProgress.forEach(pt => movePathToPoint(stateRef.state.path, pt));
+        var lastPt = value.inProgress.length ? value.inProgress[value.inProgress.length-1] : null;
+
+        if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
+        if (value.targetPoint != null) {
+            stateRef.state.targetPath = createTargetPath(lastPt, value.targetPoint, pathWidth);
+        }
+
+        // Update the state description
+        stateRef.state.highLevelStateDesc.textContent = algorithmStateText[value.highLevelState];
+        iter(stateRef.state.algoStateList.children, (c,i) => {
+            if (i == value.highLevelStateIndex) {
+                bold(c);
+                if (c.childElementCount > 0) {
+                    iter(c.children[0].children, (cc,j) =>
+                        (j == value.lowLevelStateIndex) ? bold(cc) : unbold(cc)
+                    );
+                }
+            } else {
+                unbold(c);
+                if (c.childElementCount > 0) {
+                    iter(c.children[0].children, unbold);
+                }
+            }
+        });
     }
-    // Start
-    return (stepList, stateRef, then=r=>{}) => drawCompute(stepList, stateRef, then);
+    return drawStep;
 }

@@ -27,16 +27,10 @@ window.onload = () => {
 
     // Define a function to intialize state
     let getInitialState = () => { return {
-        playing: false,
-        started: false,
-        doStep: false,
-        steptime: parseInt(elements.playInterval.value),
-        refreshTime: 10,
         path: null,
         targetPath: null,
         xPath: null,
         currentPoint: null,
-        justFinished: false,
         highLevelStateDesc: elements.highLevelStateDesc,
         algoStateList: elements.algoStateList,
     }};
@@ -45,16 +39,16 @@ window.onload = () => {
 
     let addPoint = point => {
         // Add point if not already running
-        if (!stateRef.state.started) {
+        if (!sc.r.state.started) {
             drawPoint(point, drawSettings.pointColor, drawSettings.pointSize);
             points.push(point);
         }
-    }
+    };
 
     // Add a point via click
     paper.view.onMouseDown = e => addPoint(e.point);
 
-    let getAddNRandomPoints = (n) => () => {
+    let getAddNRandomPoints = n => () => {
         // Generate 10 random points biased towards the center
         let size = paper.view.size;
         let getVal = maxVal => {
@@ -68,6 +62,7 @@ window.onload = () => {
     };
     let add10 = getAddNRandomPoints(10);
     elements.add10Points.onclick = add10;
+
     var addedExamplePoints = false;
     let addExamplePoints = () => {
         if (!addedExamplePoints) {
@@ -78,27 +73,44 @@ window.onload = () => {
     };
     elements.addExamplePoints.onclick = addExamplePoints;
 
-    let reset = () => {
+    let togglePlayUI = (playing, started) => {
+        elements.playConvexHull.textContent = playing ? "Pause" : "Play";
+        // Disable step button while playing
+        elements.stepConvexHull.disabled = playing;
+        elements.add10Points.disabled = started;
+    };
+
+    let drawStep = getDrawStep(stateRef, drawSettings.pathColor, drawSettings.pathSize);
+    let sc = getStateController(drawStep, parseInt(elements.playInterval.value));
+    let updateTimeInterval = () => sc.updateStepTime(
+        parseInt(elements.playInterval.value)
+    );
+    elements.playInterval.onchange = updateTimeInterval;
+
+    // Get the convex hull step list
+    let updateList = () => graham_scan(points);
+    sc.setUpdateList(updateList);
+    let togglePlay = sc.getTogglePlay(togglePlayUI);
+
+    // Set up play button for convex hull
+    elements.playConvexHull.onclick = togglePlay;
+    // Set up step button for convex hull
+    elements.stepConvexHull.onclick = sc.manualStep;
+
+    let resetUI = () => {
         // Clear old path if it exists
-        if (!stateRef.state.justFinished) {
+        if (!sc.r.state.justFinished) {
             // Clear existing points
             points.splice(0);
             activeLayer.clear();
+            // Reset state to initial state
+            stateRef.state = getInitialState();
         }
-        // Reset state to initial state
-        let init = getInitialState();
-        stateRef.state = stateRef.state.justFinished ? {
-            ...init,
-            path:stateRef.state.path,
-            targetPath:stateRef.state.targetPath,
-            xPath:stateRef.state.xPath,
-            currentPoint:stateRef.state.currentPoint
-        } : init;
         // Reset play/pause button to initial state
         elements.playConvexHull.textContent = "Play";
-        elements.playConvexHull.onclick = playConvexHull;
-        elements.stepConvexHull.disabled = stateRef.state.playing;
-        elements.add10Points.disabled = stateRef.state.started;
+        elements.playConvexHull.onclick = togglePlay;
+        elements.stepConvexHull.disabled = false;
+        elements.add10Points.disabled = false;
         // Reset high-level state description
         stateRef.state.highLevelStateDesc.textContent = "Not running";
         iter(stateRef.state.algoStateList.children, c => {
@@ -108,51 +120,6 @@ window.onload = () => {
             }
         });
     };
-    elements.resetConvexHull.onclick = reset;
-
-    let doManualStep = () => {
-        // Perform a manual step
-        if (stateRef.state.started) {
-            // Signal to perform a step
-            stateRef.state.doStep = true;
-        } else {
-            // First start and pause before manual stepping
-            playConvexHull();
-            togglePlay();
-        }
-    };
-    elements.stepConvexHull.onclick = doManualStep;
-
-    let togglePlay = () => {
-        // Signal to Play/Pause execution
-        stateRef.state.started = true;
-        stateRef.state.playing = !stateRef.state.playing;
-        elements.playConvexHull.textContent = stateRef.state.playing ? "Pause" : "Play";
-        // Disable step button while playing
-        elements.stepConvexHull.disabled = stateRef.state.playing;
-        elements.add10Points.disabled = stateRef.state.started;
-    }
-
-    let updateTimeInterval = () => {
-        // Update the state with the updated element value
-        stateRef.state.steptime = parseInt(elements.playInterval.value);
-    };
-    elements.playInterval.onchange = updateTimeInterval;
-
-    let runVisualization = getRun(drawSettings.pathColor, drawSettings.pathSize);
-
-    let playConvexHull = () => {
-        // Begin execution of algorithm
-        togglePlay();
-
-        // Get the convex hull step list
-        let stepList = graham_scan(points);
-        // Run the algorithm visualization
-        runVisualization(stepList, stateRef, reset);
-        // While running, set play button to toggle between play and pause
-        elements.playConvexHull.onclick = togglePlay;
-    };
-
-    // Set up play button for convex hull
-    elements.playConvexHull.onclick = playConvexHull;
+    sc.setResetUI(resetUI);
+    elements.resetConvexHull.onclick = sc.reset;
 }
