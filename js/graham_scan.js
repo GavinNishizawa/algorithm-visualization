@@ -12,10 +12,16 @@ var convexHullExamplePoints = [
 ];
 
 let algorithmStates = {
-    sorting: "Sort the points data structure by x value then y value",
-    lowerHull: "Compute the lower hull of the convex hull",
-    upperHull: "Compute the upper hull of the convex hull"
+    sorting: 0,
+    lowerHull: 1,
+    upperHull: 2
 };
+
+let algorithmStateText = [
+    "Sort the points data structure by x value then y value",
+    "Compute the lower hull of the convex hull",
+    "Compute the upper hull of the convex hull"
+];
 
 // compute the convex hull via the upper and lower hulls
 function graham_scan(points) {
