@@ -13,7 +13,7 @@ function getStateController(stepFn=(v,i)=>{}, initStepTime=100) {
             list: null,
             togglePlay: () => {},
             updateList: () => {},
-            resetUI: () => {},
+            resetUI: (justFinished) => {},
         }};
 
         let isWaiting = () => !r.state.playing && !r.state.doStep;
@@ -81,7 +81,7 @@ function getStateController(stepFn=(v,i)=>{}, initStepTime=100) {
         }
 
         function reset() {
-            r.state.resetUI();
+            r.state.resetUI(r.state.justFinished);
             r.state = {...r.state,
                 index: 0,
                 direction: 1,

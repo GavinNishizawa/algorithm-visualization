@@ -1,23 +1,15 @@
-var convexHullExamplePoints = [
-[10, 4],
-[7, 3],
-[8, 1],
-[6, -1],
-[9, -2],
-[11, -1],
-[12, 0],
-[15, 1],
-[14, 3],
-[13, 3],
-];
-
-let algorithmStates = {
+const highLevelStates = {
     sorting: 0,
     lowerHull: 1,
-    upperHull: 2
+    upperHull: 2,
+};
+const lowLevelStates = {
+    checkAngle: 0,
+    pop: 1,
+    push: 2,
 };
 
-let algorithmStateText = [
+const algorithmStateText = [
     "Sort the points data structure by x value then y value",
     "Compute the lower hull of the convex hull",
     "Compute the upper hull of the convex hull"
@@ -28,9 +20,8 @@ function graham_scan(points) {
     let stateList = [];
     let state = {};
     state.current = {
-        highLevelState: algorithmStates.sorting,
-        highLevelStateIndex: 0,
-        lowLevelStateIndex: 0,
+        highLevelState: highLevelStates.sorting,
+        lowLevelState: lowLevelStates.checkAngle,
         inProgress: [],
         targetPoint: null,
     };
@@ -69,8 +60,7 @@ function graham_scan(points) {
 
     // compute the lower hull ("upper" in this visualization since higher y-values are "lower")
     let upper = [points[0], points[1]]
-    state.current.highLevelState = algorithmStates.upperHull;
-    state.current.highLevelStateIndex = 1;
+    state.current.highLevelState = highLevelStates.lowerHull;
     state.current.inProgress = upper;
     state.current.targetPoint = upper.length > 2 ? upper[2] : null;
     state.current.currentPoint = upper[upper.length - 1];
@@ -82,28 +72,27 @@ function graham_scan(points) {
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
         ) {
             state.current.targetPoint = p;
-            state.current.lowLevelStateIndex = 0;
+            state.current.lowLevelState = lowLevelStates.checkAngle;
             recordState();
             state.current.targetPoint = null;
-            state.current.lowLevelStateIndex = 1;
+            state.current.lowLevelState = lowLevelStates.pop;
             upper.pop()
             state.current.inProgress = upper;
             recordState();
         }
         state.current.targetPoint = p;
-        state.current.lowLevelStateIndex = 0;
+        state.current.lowLevelState = lowLevelStates.checkAngle;
         recordState();
         upper.push(p)
         state.current.inProgress = upper;
         state.current.targetPoint = null;
-        state.current.lowLevelStateIndex = 2;
+        state.current.lowLevelState = lowLevelStates.push;
         recordState();
     }
 
     // compute the upper hull ("lower" in this visualization since higher y-values are "lower")
     let lower = [points[points.length-1], points[points.length-2]]
-    state.current.highLevelState = algorithmStates.lowerHull;
-    state.current.highLevelStateIndex = 2;
+    state.current.highLevelState = highLevelStates.upperHull;
 
     for (var i = points.length - 2; i >= 0; i--) {
         var p = points[i];
@@ -112,21 +101,21 @@ function graham_scan(points) {
             cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
         ) {
             state.current.targetPoint = p;
-            state.current.lowLevelStateIndex = 0;
+            state.current.lowLevelState = lowLevelStates.checkAngle;
             recordState();
             state.current.targetPoint = null;
-            state.current.lowLevelStateIndex = 1;
+            state.current.lowLevelState = lowLevelStates.pop;
             lower.pop()
             state.current.inProgress = upper.concat(lower);
             recordState();
         }
         state.current.targetPoint = p;
-        state.current.lowLevelStateIndex = 0;
+        state.current.lowLevelState = lowLevelStates.checkAngle;
         recordState();
         lower.push(p)
         state.current.inProgress = upper.concat(lower);
         state.current.targetPoint = null;
-        state.current.lowLevelStateIndex = 2;
+        state.current.lowLevelState = lowLevelStates.push;
         recordState();
     }
 

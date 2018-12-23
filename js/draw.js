@@ -1,8 +1,3 @@
-function scaleExamplePoint(pt){
-    var scaleFactor = 16, xOffset = 0, yOffset=8*scaleFactor;
-    return new Point(scaleFactor*pt[0]+xOffset, -scaleFactor*pt[1]+yOffset);
-}
-
 function setPathStyle(path, color, width) {
     path.strokeColor = color;
     path.strokeWidth = width;
@@ -48,47 +43,43 @@ function createXPath(x, pathWidth=1) {
     return xPath;
 }
 
-function getDrawStep(stateRef, pathColor='red', pathWidth=1) {
-    function drawStep(value, index) {
+function getDrawStep(ref, pathColor='red', pathWidth=1) {
+    function resetSet(name, value) {
+        if (ref.state[name]) ref.state[name].remove();
+        ref.state[name] = value;
+    }
 
-        if (stateRef.state.xPath) stateRef.state.xPath.remove();
-        if (value.currentPoint != null) {
-            stateRef.state.xPath = createXPath(value.currentPoint.x, pathWidth);
-        }
+    let updateXPath = currentPoint => resetSet("xPath",
+        // Draw the current x coordinate line
+        !currentPoint ? null : createXPath(currentPoint.x, pathWidth)
+    );
 
-        if (stateRef.state.currentPoint) stateRef.state.currentPoint.remove();
-        stateRef.state.currentPoint = drawPoint(value.currentPoint, new Color(0,0,1), 4);
+    let updateCurrentPoint = currentPoint => resetSet("currentPoint",
+        // Draw the current point
+        drawPoint(currentPoint, new Color(0,0,1), 4)
+    );
 
+    function updatePath(inProgress, getPath) {
         // Create new path object
-        if (stateRef.state.path) stateRef.state.path.remove();
-        stateRef.state.path = makePath(pathColor, pathWidth);
+        resetSet("path", makePath(pathColor, pathWidth));
+        // Draw the path between points
+        inProgress.forEach(pt => movePathToPoint(getPath(), pt));
+    }
 
-        // draw the path between points
-        value.inProgress.forEach(pt => movePathToPoint(stateRef.state.path, pt));
-        var lastPt = value.inProgress.length ? value.inProgress[value.inProgress.length-1] : null;
+    function updateTargetPath(inProgress, targetPoint) {
+        // Draw the target point path
+        var lastPt = inProgress.length ? inProgress[inProgress.length-1] : null;
+        resetSet("targetPath",
+            !targetPoint ? null : createTargetPath(lastPt, targetPoint, pathWidth)
+        );
+    }
 
-        if (stateRef.state.targetPath) stateRef.state.targetPath.remove();
-        if (value.targetPoint != null) {
-            stateRef.state.targetPath = createTargetPath(lastPt, value.targetPoint, pathWidth);
-        }
-
-        // Update the state description
-        stateRef.state.highLevelStateDesc.textContent = algorithmStateText[value.highLevelState];
-        iter(stateRef.state.algoStateList.children, (c,i) => {
-            if (i == value.highLevelStateIndex) {
-                bold(c);
-                if (c.childElementCount > 0) {
-                    iter(c.children[0].children, (cc,j) =>
-                        (j == value.lowLevelStateIndex) ? bold(cc) : unbold(cc)
-                    );
-                }
-            } else {
-                unbold(c);
-                if (c.childElementCount > 0) {
-                    iter(c.children[0].children, unbold);
-                }
-            }
-        });
+    function drawStep(value, index) {
+        updateXPath(value.currentPoint);
+        updateCurrentPoint(value.currentPoint);
+        updatePath(value.inProgress, () => ref.state.path);
+        updateTargetPath(value.inProgress, value.targetPoint);
+        ref.updateStateDescription(value.highLevelState, value.lowLevelState);
     }
     return drawStep;
 }
