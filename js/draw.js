@@ -10,7 +10,7 @@ function makePath(color, width) {
 }
 
 function drawPoint(point, pointColor='blue', pointSize=1) {
-    var ptCircle = new Path.Circle(point, pointSize);
+    let ptCircle = new Path.Circle(point, pointSize);
     ptCircle.strokeColor = pointColor;
     ptCircle.fillColor = pointColor;
     return ptCircle;
@@ -43,10 +43,11 @@ function createXPath(x, pathWidth=1) {
     return xPath;
 }
 
-function getDrawStep(ref, pathColor='red', pathWidth=1) {
+function getDrawState(pathColor='red', pathWidth=1) {
+    let drawState = {};
     function resetSet(name, value) {
-        if (ref.state[name]) ref.state[name].remove();
-        ref.state[name] = value;
+        if (drawState[name]) drawState[name].remove();
+        drawState[name] = value;
     }
 
     let updateXPath = currentPoint => resetSet("xPath",
@@ -68,7 +69,7 @@ function getDrawStep(ref, pathColor='red', pathWidth=1) {
 
     function updateTargetPath(inProgress, targetPoint) {
         // Draw the target point path
-        var lastPt = inProgress.length ? inProgress[inProgress.length-1] : null;
+        let lastPt = inProgress.length ? inProgress[inProgress.length-1] : null;
         resetSet("targetPath",
             !targetPoint ? null : createTargetPath(lastPt, targetPoint, pathWidth)
         );
@@ -77,9 +78,10 @@ function getDrawStep(ref, pathColor='red', pathWidth=1) {
     function drawStep(value, index) {
         updateXPath(value.currentPoint);
         updateCurrentPoint(value.currentPoint);
-        updatePath(value.inProgress, () => ref.state.path);
+        updatePath(value.inProgress, () => drawState.path);
         updateTargetPath(value.inProgress, value.targetPoint);
-        ref.updateStateDescription(value.highLevelState, value.lowLevelState);
     }
     return drawStep;
+}
+function getDrawStep(ref, pathColor='red', pathWidth=1) {
 }

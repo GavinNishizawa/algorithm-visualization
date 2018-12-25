@@ -26,16 +26,6 @@ let main = (() => {
         return controls;
     }
 
-    // Define a function to intialize state
-    let getInitialState = (controls) => { return {
-        path: null,
-        targetPath: null,
-        xPath: null,
-        currentPoint: null,
-        highLevelStateDesc: controls.highLevelStateDesc,
-        algoStateList: controls.algoStateList,
-    }};
-
     let getAddPoint = (points, drawSettings) => (point, started) => {
         // Add point if not already running
         if (!started) {
@@ -44,9 +34,9 @@ let main = (() => {
         }
     };
 
-    function initAddPointOnClick(addPoint) {
+    function initAddPointOnClick(addPoint, checkStarted) {
         // Add a point via click
-        setCanvasClickEvent(e => addPoint(e.point));
+        setCanvasClickEvent(e => addPoint(e.point, checkStarted()));
     }
 
     function initAdd10Points(controls, addPoint) {
@@ -75,16 +65,12 @@ let main = (() => {
 
     let getPlayInterval = controls => parseInt(controls.playInterval.value);
 
-    function initPlayInterval(controls, sc) {
-        controls.playInterval.onchange = () => sc.updateStepTime(
-            getPlayInterval(controls)
-        );
-    }
+    let initPlayInterval = (controls, update) => controls.playInterval.onchange = update;
 
-    let resetStateText = (highLevelStateDesc, algoStateList) => {
+    let resetStateText = controls => {
         // Reset high-level state description
-        highLevelStateDesc.textContent = "Not running";
-        iter(algoStateList.children, c => {
+        controls.highLevelStateDesc.textContent = "Not running";
+        iter(controls.algoStateList.children, c => {
             unbold(c);
             if (c.childElementCount > 0) {
                 iter(c.children[0].children, unbold);
@@ -100,28 +86,29 @@ let main = (() => {
         controls.add10Points.disabled = false;
     };
 
-    function initButtons(controls, togglePlay, sc) {
+    function initButtons(controls, togglePlay, pc) {
         // Set up play button for convex hull
         controls.playConvexHull.onclick = togglePlay;
         // Set up step button for convex hull
-        controls.stepConvexHull.onclick = sc.manualStep;
+        controls.stepConvexHull.onclick = pc.stepForward;
     }
 
-    function initReset(points, controls, stateRef, sc, togglePlay) {
+    function initReset(points, controls, pc, togglePlay) {
         let resetUI = (justFinished) => {
             // Clear old path if it exists
             if (!justFinished) {
                 // Clear existing points
                 points.splice(0);
                 clearActiveLayer();
-                // Reset state to initial state
-                stateRef.state = getInitialState(controls);
             }
             resetButtons(controls, togglePlay);
-            resetStateText(stateRef.state.highLevelStateDesc, stateRef.state.algoStateList);
+            resetStateText(controls);
         };
-        sc.setResetUI(resetUI);
-        controls.resetConvexHull.onclick = sc.reset;
+
+        controls.resetConvexHull.onclick = () => {
+            pc.reset();
+            resetUI(false);
+        };
     }
 
     function updateStateText(controls, highLevelState) {
@@ -148,31 +135,40 @@ let main = (() => {
         });
     }
 
-    function initStateRef(controls) {
-        let stateRef = {state: getInitialState(controls)};
-        stateRef.updateStateDescription = getUpdateStateDescription(controls);
-        return stateRef;
-    }
-
     function init() {
         let points = [];
         let controls = getControls();
         // Define a reference to access state
-        let stateRef = initStateRef(controls);
         let addPoint = getAddPoint(points, drawSettings);
-        initAddPointOnClick(addPoint);
         initAdd10Points(controls, addPoint);
+        let updateStateDescription = getUpdateStateDescription(controls);
+        let drawState = getDrawState(drawSettings.pathColor, drawSettings.pathSize);
 
-        let drawStep = getDrawStep(stateRef, drawSettings.pathColor, drawSettings.pathSize);
-        let sc = getStateController(drawStep, getPlayInterval(controls));
-        initPlayInterval(controls, sc);
+        let updateList = () => graham_scan(points);
+        let updateStepTime = () => getPlayInterval(controls);
+        let update = (state, index) => {
+            updateStateDescription(state.highLevelState, state.lowLevelState);
+            drawState(state, index);
+        };
+        let togglePlayUI = getTogglePlayUI(controls);
+        let resetUI = () => {
+            togglePlayUI(false, false);
+            resetStateText(controls);
+        };
+        let onStart = playing => togglePlayUI(playing, true);
+        let togglePlay = (() => {
+            let playing = false;
+            return () => {
+                playing = playController.togglePlay();
+                onStart(playing);
+            };
+        })();
+        let playController = getPlayController(updateList, updateStepTime, update, resetUI, onStart);
+        initPlayInterval(controls, playController.updateStepTime);
+        initAddPointOnClick(addPoint, playController.isStarted);
 
-        // Set the function to get an updated convex hull state list
-        sc.setUpdateList(() => graham_scan(points));
-        let togglePlay = sc.getTogglePlay(getTogglePlayUI(controls));
-
-        initButtons(controls, togglePlay, sc);
-        initReset(points, controls, stateRef, sc, togglePlay);
+        initButtons(controls, togglePlay, playController);
+        initReset(points, controls, playController, togglePlay);
     }
 
     return { init };

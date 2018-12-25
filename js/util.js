@@ -1,6 +1,6 @@
 
 function repeat(fn, n) {
-    for (var i = 0; i < n; i++) fn(i);
+    for (let i = 0; i < n; i++) fn(i);
 }
 
 function iter(list, fn) {

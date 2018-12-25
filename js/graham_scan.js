@@ -30,13 +30,13 @@ function graham_scan(points) {
     );
     recordState();
 
-    function sub(p,q){
-        return [q.x-p.x,q.y-p.y]
+    function sub(p, q){
+        return [q.x-p.x, q.y-p.y]
     }
 
     function cross_product(p,q,r){
-        var pq = sub(p,q)
-        var qr = sub(q,r)
+        let pq = sub(p, q);
+        let qr = sub(q, r);
         return pq[0]*qr[1] - pq[1]*qr[0];
     }
 
@@ -52,7 +52,7 @@ function graham_scan(points) {
             return 1;
         }
     });
-    for (var i = 0; i < points.length; i++){
+    for (let i = 0; i < points.length; i++){
         // show sorted points
         state.current.currentPoint = points[i];
         recordState();
@@ -65,8 +65,8 @@ function graham_scan(points) {
     state.current.targetPoint = upper.length > 2 ? upper[2] : null;
     state.current.currentPoint = upper[upper.length - 1];
 
-    for (var i = 2; i < points.length; i++) {
-        var p = points[i];
+    for (let i = 2; i < points.length; i++) {
+        let p = points[i];
         state.current.currentPoint = p;
         while (upper.length >= 2 &&
             cross_product(p, upper[upper.length-1], upper[upper.length-2]) >= 0
@@ -94,8 +94,8 @@ function graham_scan(points) {
     let lower = [points[points.length-1], points[points.length-2]]
     state.current.highLevelState = highLevelStates.upperHull;
 
-    for (var i = points.length - 2; i >= 0; i--) {
-        var p = points[i];
+    for (let i = points.length - 2; i >= 0; i--) {
+        let p = points[i];
         state.current.currentPoint = p;
         while (lower.length >= 2 &&
             cross_product(p, lower[lower.length-1], lower[lower.length-2]) >= 0
