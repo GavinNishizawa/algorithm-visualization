@@ -10,7 +10,7 @@ let getStateController = stateList => (() => {
             onDoneFn();
             return false;
         }
-    }
+    };
     let onChangeFn = (v, i) => {};
     let onChange = fn => onChangeFn = fn;
     let beforeEnd = () => (index < stateList.length - 1);
@@ -19,7 +19,10 @@ let getStateController = stateList => (() => {
     let doDecrement = () => index--;
     let increment = () => change(beforeEnd, doIncrement);
     let decrement = () => change(afterStart, doDecrement);
-    let reset = () => index = 0;
+    let reset = newStateList => {
+        index = 0;
+        stateList = newStateList;
+    };
     let onDoneFn = () => {};
     let onDone = fn => onDoneFn = fn;
 
@@ -29,22 +32,20 @@ let getStateController = stateList => (() => {
         reset,
         stateList,
         onChange,
+        onChangeFn,
         onDone,
     };
 })();
 
-let getPlayController = (updateList, getStepTime, onChange, onDone, onStart) => (() => {
-    let stateController;
+let getPlayController = (updateList, getStepTime) => (() => {
+    let stateController = getStateController(updateList());
     let stepTime = 1000;
     let interval = null;
     let started = false;
-    let init = (didStart=false) => {
+    let reset = () => {
         clear();
-        started = didStart;
-        if (started) onStart();
-        stateController = getStateController(updateList());
-        stateController.onChange(onChange);
-        stateController.onDone(onDone);
+        started = false;
+        stateController.reset(updateList());
     };
     let clear = () => {
         if (interval) interval = clearInterval(interval);
@@ -56,17 +57,18 @@ let getPlayController = (updateList, getStepTime, onChange, onDone, onStart) => 
     let play = () => clearSet(stepForward, stepTime);
     let pause = clear;
     let start = fn => (...args) => {
-        if (!started) init(true);
+        if (!started) reset();
+        started = true;
         return fn(...args);
     };
     let isStarted = () => started;
     let togglePlay = start(() => {
         if (interval) {
             pause();
-            return false;
+            togglePlayUI(false);
         } else {
             play();
-            return true;
+            togglePlayUI(true);
         }
     });
     let step = start(doStep => {
@@ -75,11 +77,16 @@ let getPlayController = (updateList, getStepTime, onChange, onDone, onStart) => 
     let stepForward = () => step(() => stateController.increment());
     let stepBackward = () => step(() => stateController.decrement());
     let rewind = () => clearSet(stepBackward, stepTime);
-    let reset = init;
     let updateStepTime = () => {
         stepTime = getStepTime();
         if (interval) play(); // play with new step time
     };
+    let setOnChange = fn => {
+        stateController.onChange(fn);
+    };
+    let setOnDone = fn => stateController.onDone(fn);
+    let togglePlayUI = playing => {};
+    let setTogglePlayUI = fn => togglePlayUI = fn;
 
     return {
         isStarted,
@@ -87,5 +94,8 @@ let getPlayController = (updateList, getStepTime, onChange, onDone, onStart) => 
         stepForward,
         reset,
         updateStepTime,
+        setOnChange,
+        setOnDone,
+        setTogglePlayUI,
     };
 })();
