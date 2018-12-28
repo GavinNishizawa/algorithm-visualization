@@ -46,19 +46,19 @@
             <ul>
                 <li>Add specific points either by clicking or tapping on the canvas</li>
                 <li>Add 10 random points each time you select the Add 10 Random Points button</li>
-                <li>Play the algorithm visualization at a speed determined by the step interval with the Play/Pause button</li>
-                <li>Adjust the time (ms) between steps with the step interval field (lower=faster)</li>
+                <li>Play the algorithm visualization automatically with the Play/Pause button</li>
+                <li>Adjust speed of automatic play with the speed sliderbar</li>
                 <li>Use the step button while the algorithm is not playing to control each step of the algorithm</li>
                 <li>Use the reset button to reset the state of the algorithm</li>
                 <li>Wait for the algorithm to finish or reset it before adding new points</li>
             </ul>
-            <button class="control control-btn" id="playConvexHull">Play</button>
-            <button class="control control-btn" id="stepConvexHull">Step</button>
-            <label for="playInterval">Step Interval (0 - 5000ms):
-                <input class="control" type="number" id="playInterval" min=0 max=5000 step=100 value="1000"/>
+            <button class="btn btn-dark control control-btn" id="playConvexHull">Play</button>
+            <button class="btn btn-outline-dark control control-btn" id="stepConvexHull">Step</button>
+            <label for="playInterval">Speed:
+                <input class="control align-middle" type="range" id="playInterval" min=0 max=9 step=1 value="2"/>
             </label>
-            <button class="control control-btn" id="resetConvexHull">Reset</button>
-            <button class="control control-btn" id="add10Points">Add 10 Random Points</button>
+            <button class="btn btn-outline-dark control control-btn" id="resetConvexHull">Reset</button>
+            <button class="btn btn-outline-dark control control-btn" id="add10Points">Add 10 Random Points</button>
             <br/>
             <p>High-level algorithm state: <span class="control" id="highLevelStateDesc">Not running</span></p>
             <div class="row">
@@ -96,6 +96,9 @@
                 <li>
                     Mount, David. “CMSC 754 Computational Geometry. Lecture Notes” UMD Department of Computer Science,
                     2012, http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
+                </li>
+                <li>
+                    Bootstrap : <a href="https://getbootstrap.com" target="_blank">getbootstrap.com</a>
                 </li>
             </ol>
         </div>

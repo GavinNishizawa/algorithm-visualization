@@ -42,9 +42,6 @@ const main = (() => {
         setCanvasClickEvent(e => addPoint(e.point, checkStarted()));
     }
 
-    function initAdd10Points(controls, addPoint) {
-    }
-
     const getAddNRandomPoints = (N, addPoint) => () => {
     // Generate N random points biased towards the center
         // Generate a random 1 or -1
@@ -80,7 +77,14 @@ const main = (() => {
     };
 
     // Call this with controls for a function which gets the current play interval value
-    const getPlayInterval = controls => () => parseInt(controls.playInterval.value);
+    const getPlayInterval = controls => (() => {
+        const speeds = [];
+        // Set N speeds starting from 2000, 60% speed up each time
+        repeat(i => speeds.push(Math.round(2000 * ((1/1.6)**i))),
+            controls.playInterval.max);
+        speeds.push(0); // Set fastest speed: 0
+        return () => speeds[parseInt(controls.playInterval.value)];
+    })();
 
     function initPlayInterval(controls, playController) {
         // Get functions to update the UI for a changed state
@@ -95,7 +99,7 @@ const main = (() => {
             drawState(state, index);
         });
         // Update the play controller's step time when the UI element is changed
-        controls.playInterval.onchange = playController.updateStepTime;
+        controls.playInterval.oninput = playController.updateStepTime;
     }
 
     function resetStateText(controls) {
