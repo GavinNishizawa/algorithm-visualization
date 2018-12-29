@@ -1,4 +1,4 @@
-const graham = (() => {
+const Graham = (() => {
     const highLevelStates = {
         sorting: 0,
         lowerHull: 1,

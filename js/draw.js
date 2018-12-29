@@ -1,4 +1,4 @@
-const draw = (() => {
+const Draw = (() => {
     function setPathStyle(path, color, width) {
         path.strokeColor = color;
         path.strokeWidth = width;

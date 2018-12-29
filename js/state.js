@@ -1,7 +1,7 @@
 
-let getStateController = stateList => (() => {
+const StateController = stateList => (() => {
     let index = 0;
-    let change = (check, fn) => {
+    const change = (check, fn) => {
         if (check()) {
             fn();
             onChangeFn(stateList[index], index);
@@ -12,19 +12,19 @@ let getStateController = stateList => (() => {
         }
     };
     let onChangeFn = (v, i) => {};
-    let onChange = fn => onChangeFn = fn;
-    let beforeEnd = () => (index < stateList.length - 1);
-    let afterStart = () => (index > 0);
-    let doIncrement = () => index++;
-    let doDecrement = () => index--;
-    let increment = () => change(beforeEnd, doIncrement);
-    let decrement = () => change(afterStart, doDecrement);
-    let reset = newStateList => {
+    const onChange = fn => onChangeFn = fn;
+    const beforeEnd = () => (index < stateList.length - 1);
+    const afterStart = () => (index > 0);
+    const doIncrement = () => index++;
+    const doDecrement = () => index--;
+    const increment = () => change(beforeEnd, doIncrement);
+    const decrement = () => change(afterStart, doDecrement);
+    const reset = newStateList => {
         index = 0;
         stateList = newStateList;
     };
     let onDoneFn = () => {};
-    let onDone = fn => onDoneFn = fn;
+    const onDone = fn => onDoneFn = fn;
 
     return {
         increment,
@@ -32,37 +32,36 @@ let getStateController = stateList => (() => {
         reset,
         stateList,
         onChange,
-        onChangeFn,
         onDone,
     };
 })();
 
-let getPlayController = (updateList, getStepTime) => (() => {
-    let stateController = getStateController(updateList());
+const PlayController = (updateList, getStepTime) => (() => {
+    const stateController = StateController(updateList());
     let stepTime = 1000;
     let interval = null;
     let started = false;
-    let reset = () => {
+    const reset = () => {
         clear();
         started = false;
         stateController.reset(updateList());
     };
-    let clear = () => {
+    const clear = () => {
         if (interval) interval = clearInterval(interval);
     };
-    let clearSet = (fn, time) => {
+    const clearSet = (fn, time) => {
         clear();
         interval = setInterval(fn, time);
     };
-    let play = () => clearSet(stepForward, stepTime);
-    let pause = clear;
-    let start = fn => (...args) => {
+    const play = () => clearSet(stepForward, stepTime);
+    const pause = clear;
+    const start = fn => (...args) => {
         if (!started) reset();
         started = true;
         return fn(...args);
     };
-    let isStarted = () => started;
-    let togglePlay = start(() => {
+    const isStarted = () => started;
+    const togglePlay = start(() => {
         if (interval) {
             pause();
             togglePlayUI(false);
@@ -71,27 +70,31 @@ let getPlayController = (updateList, getStepTime) => (() => {
             togglePlayUI(true);
         }
     });
-    let step = start(doStep => {
+    const step = start(doStep => {
         if (!doStep()) reset(); else started = true;
     });
-    let stepForward = () => step(() => stateController.increment());
-    let stepBackward = () => step(() => stateController.decrement());
-    let rewind = () => clearSet(stepBackward, stepTime);
-    let updateStepTime = () => {
+    const stepForward = () => step(() => stateController.increment());
+    const manualStep = () => {
+        togglePlayUI(false);
+        stepForward();
+    };
+    const stepBackward = () => step(() => stateController.decrement());
+    const rewind = () => clearSet(stepBackward, stepTime);
+    const updateStepTime = () => {
         stepTime = getStepTime();
         if (interval) play(); // play with new step time
     };
-    let setOnChange = fn => {
+    const setOnChange = fn => {
         stateController.onChange(fn);
     };
-    let setOnDone = fn => stateController.onDone(fn);
+    const setOnDone = fn => stateController.onDone(fn);
     let togglePlayUI = playing => {};
-    let setTogglePlayUI = fn => togglePlayUI = fn;
+    const setTogglePlayUI = fn => togglePlayUI = fn;
 
     return {
         isStarted,
         togglePlay,
-        stepForward,
+        manualStep,
         reset,
         updateStepTime,
         setOnChange,
