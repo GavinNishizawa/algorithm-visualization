@@ -13,13 +13,13 @@ const Canvas = (() => {
     const getSize = () => paper.view.size;
     const clear = () => paper.project.activeLayer.clear();
     const setClickEvent = fn => paper.view.onMouseDown = fn;
-    const setup = () => paper.setup('algo-visual');
+    const init = () => paper.setup('algo-visual');
 
     return {
         clear,
         drawSettings,
         getSize,
         setClickEvent,
-        setup,
+        init,
     };
 })();

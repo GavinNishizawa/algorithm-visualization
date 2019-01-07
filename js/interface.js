@@ -47,8 +47,8 @@ const Interface = (() => {
         controls.add10Points.disabled = started;
     };
 
-    const getPlayInterval = () => (() => {
-    // Returns the current play interval value
+    const GetPlayInterval = () => (() => {
+    // Returns a function which gets the current autoplay timestep delay
         const speeds = [];
         // Set N speeds starting from 2000, 60% speed up each time
         repeat(i => speeds.push(Math.round(2000 * ((1/1.6)**i))),
@@ -189,6 +189,6 @@ const Interface = (() => {
 
     return {
         init,
-        getPlayInterval,
+        GetPlayInterval,
     };
 })();
