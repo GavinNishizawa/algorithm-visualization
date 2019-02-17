@@ -44,6 +44,12 @@ const Draw = (() => {
         return xPath;
     }
 
+    function createAngleArc(a, b, c, pathWidth=1) {
+        let arcPath = new Path.Arc(a, b, c)
+        setPathStyle(arcPath, new Color(0,0.3,0.7), pathWidth);
+        return arcPath;
+    }
+
     function getDrawState(pathColor='red', pathWidth=1) {
         let drawState = {};
         function resetSet(name, value) {
@@ -76,11 +82,56 @@ const Draw = (() => {
             );
         }
 
+        function updateAngleArc(inProgress, targetPoint) {
+            // Draw the angle arc
+            let lastPt = inProgress.length ? inProgress[inProgress.length-1] : null;
+            let prevPt = (inProgress.length > 1) ? inProgress[inProgress.length-2] : null;
+            let valid = targetPoint && prevPt && lastPt
+
+            const getMid = (...pts) => new Point(
+                sum(pts.map(p => p.x))/pts.length,
+                sum(pts.map(p => p.y))/pts.length);
+
+            const distance = (a, b) => Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+
+            const getPointAlong = (a, b, l=0.5) => new Point(
+                (1 - l) * a.x + l * b.x,
+                (1 - l) * a.y + l * b.y);
+
+            if (!valid) {
+                resetSet("angleArc", null);
+                return
+            }
+
+            // Compute lengths to determine which midpoint to use
+            let distPL = distance(prevPt, lastPt);
+            let distLT = distance(lastPt, targetPoint);
+            let shorterPL = (distPL <= distLT);
+
+            // Compute anchor position along each line
+            let ratioPL = (!shorterPL && distPL) ? 0.5 * (distLT / distPL) : 0.5;
+            let ratioLT = (shorterPL && distLT) ? 0.5 * (distPL / distLT) : 0.5;
+
+            // Compute left and right anchor points
+            let lpMid = getPointAlong(lastPt, prevPt, ratioPL);
+            let ltMid = getPointAlong(lastPt, targetPoint, ratioLT);
+
+            // Compute center anchor point
+            let lpltMid = getMid(lpMid, ltMid);
+            let centerDist = distance(lastPt, lpltMid);
+            let avgDist = (ratioPL * distPL + ratioLT * distLT) / 2;
+            let mid = getPointAlong(lastPt, lpltMid, centerDist ? avgDist / centerDist : 0.5);
+
+            // Draw the arc through the anchor points
+            resetSet("angleArc", createAngleArc(lpMid, mid, ltMid, pathWidth));
+        }
+
         function drawStep(value, index) {
             updateXPath(value.currentPoint);
             updateCurrentPoint(value.currentPoint);
             updatePath(value.inProgress, () => drawState.path);
             updateTargetPath(value.inProgress, value.targetPoint);
+            updateAngleArc(value.inProgress, value.targetPoint);
         }
         return drawStep;
     }
