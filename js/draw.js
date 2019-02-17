@@ -31,22 +31,23 @@ const Draw = (() => {
     }
 
     function createTargetPath(a, b, pathWidth=1) {
-        let targetPath = makePath(new Color(0,0.3,0.7), pathWidth);
+        let targetPath = makePath(new Color(0, 0.3, 0.7), pathWidth);
         movePathToPoint(targetPath, a);
         movePathToPoint(targetPath, b);
         return targetPath;
     }
 
     function createXPath(x, pathWidth=1) {
-        let xPath = makePath(new Color(0.1,0.1,0.1), pathWidth);
+        let xPath = makePath(new Color(0.1, 0.1, 0.1), pathWidth);
         movePath(xPath, x, 0);
         movePath(xPath, x, 10000);
         return xPath;
     }
 
-    function createAngleArc(a, b, c, pathWidth=1) {
+    function createAngleArc(a, b, c, pathWidth=1, isGreen=false) {
         let arcPath = new Path.Arc(a, b, c)
-        setPathStyle(arcPath, new Color(0,0.3,0.7), pathWidth);
+        let color = isGreen ? new Color(0, 0.7, 0.3) : new Color(0, 0, 0);
+        setPathStyle(arcPath, color, pathWidth);
         return arcPath;
     }
 
@@ -116,14 +117,24 @@ const Draw = (() => {
             let lpMid = getPointAlong(lastPt, prevPt, ratioPL);
             let ltMid = getPointAlong(lastPt, targetPoint, ratioLT);
 
+            const sub = (p, q) => [q.x-p.x, q.y-p.y];
+
+            const cross_product = (p, q, r) => {
+                const pq = sub(p, q);
+                const qr = sub(q, r);
+                return pq[0] * qr[1] - pq[1] * qr[0];
+            }
+
             // Compute center anchor point
             let lpltMid = getMid(lpMid, ltMid);
             let centerDist = distance(lastPt, lpltMid);
             let avgDist = (ratioPL * distPL + ratioLT * distLT) / 2;
-            let mid = getPointAlong(lastPt, lpltMid, centerDist ? avgDist / centerDist : 0.5);
+            let ratioMid = centerDist ? avgDist / centerDist : 0.5
+            let angleReflect = (cross_product(prevPt, lastPt, targetPoint) >= 0) ? 1 : -1;
+            let mid = getPointAlong(lastPt, lpltMid, angleReflect * ratioMid);
 
             // Draw the arc through the anchor points
-            resetSet("angleArc", createAngleArc(lpMid, mid, ltMid, pathWidth));
+            resetSet("angleArc", createAngleArc(lpMid, mid, ltMid, pathWidth, angleReflect === 1));
         }
 
         function drawStep(value, index) {
